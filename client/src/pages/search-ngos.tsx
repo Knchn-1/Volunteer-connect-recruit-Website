@@ -47,7 +47,7 @@ export default function SearchNGOs() {
           ngo.description.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
       
-      const matchesCause = selectedCause 
+      const matchesCause = selectedCause && selectedCause !== 'all'
         ? ngo.cause.toLowerCase() === selectedCause.toLowerCase() 
         : true;
       
@@ -105,7 +105,7 @@ export default function SearchNGOs() {
                     <SelectValue placeholder="All Causes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Causes</SelectItem>
+                    <SelectItem value="all">All Causes</SelectItem>
                     {causes.map(cause => (
                       <SelectItem key={cause} value={cause}>{cause}</SelectItem>
                     ))}
@@ -118,7 +118,7 @@ export default function SearchNGOs() {
                   variant="ghost"
                   onClick={() => {
                     setSearchTerm("");
-                    setSelectedCause("");
+                    setSelectedCause("all");
                   }}
                   className="mb-0.5"
                 >
