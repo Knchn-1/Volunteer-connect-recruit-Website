@@ -87,14 +87,15 @@ export default function AuthPage() {
   };
 
   // Redirect if already logged in
-  if (user) {
-    if (user.userType === "volunteer") {
-      setLocation("/volunteer");
-    } else {
-      setLocation("/recruiter");
+  React.useEffect(() => {
+    if (user) {
+      if (user.userType === "volunteer") {
+        setLocation("/volunteer");
+      } else {
+        setLocation("/recruiter");
+      }
     }
-    return null;
-  }
+  }, [user, setLocation]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-100 p-4">
