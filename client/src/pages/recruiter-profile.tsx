@@ -279,17 +279,17 @@ export default function RecruiterProfile() {
             <div className="md:col-span-2">
               <Card>
                 <CardHeader>
+                  <CardTitle>Profile Information</CardTitle>
+                </CardHeader>
+                <CardContent>
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-2 mb-6">
                       <TabsTrigger value="profile">Personal Profile</TabsTrigger>
                       <TabsTrigger value="ngo">NGO Details</TabsTrigger>
                     </TabsList>
-                  </Tabs>
-                </CardHeader>
-                <CardContent>
-                  <TabsContent value="profile" className="mt-0">
-                    <Form {...profileForm}>
-                      <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                    <TabsContent value="profile" className="mt-0">
+                      <Form {...profileForm}>
+                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
                         <FormField
                           control={profileForm.control}
                           name="fullName"
@@ -487,7 +487,7 @@ export default function RecruiterProfile() {
                               <FormItem>
                                 <FormLabel>Contact Phone</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="NGO phone number" {...field} />
+                                  <Input placeholder="NGO phone number" {...field} value={field.value || ""} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -501,7 +501,7 @@ export default function RecruiterProfile() {
                               <FormItem>
                                 <FormLabel>Website</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="https://www.example.org" {...field} />
+                                  <Input placeholder="https://www.example.org" {...field} value={field.value || ""} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -516,7 +516,7 @@ export default function RecruiterProfile() {
                             <FormItem>
                               <FormLabel>Logo URL</FormLabel>
                               <FormControl>
-                                <Input placeholder="URL to your organization's logo" {...field} />
+                                <Input placeholder="URL to your organization's logo" {...field} value={field.value || ""} />
                               </FormControl>
                               <FormDescription>
                                 Provide a direct link to your logo image (optional)
@@ -541,6 +541,7 @@ export default function RecruiterProfile() {
                       </form>
                     </Form>
                   </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
             </div>
