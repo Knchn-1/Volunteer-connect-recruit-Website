@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route, useLocation } from "wouter";
+import { useEffect } from "react";
 
 type ProtectedRouteProps = {
   path: string;
@@ -18,6 +19,13 @@ export function ProtectedRoute({
 
   // Custom wrapper to check auth and user type
   const ProtectedComponent = () => {
+    // Use effect for navigation instead of during render
+    useEffect(() => {
+      if (!isLoading && !user) {
+        setLocation("/auth");
+      }
+    }, [isLoading, user, setLocation]);
+
     if (isLoading) {
       return (
         <div className="flex items-center justify-center min-h-screen">
@@ -26,8 +34,8 @@ export function ProtectedRoute({
       );
     }
 
+    // Return null while redirecting
     if (!user) {
-      setLocation("/auth");
       return null;
     }
 
