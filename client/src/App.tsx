@@ -37,6 +37,7 @@ function Router() {
       <ProtectedRoute path="/recruiter/applications" component={RecruiterApplications} allowedUserType="recruiter" />
       <ProtectedRoute path="/recruiter/suggestions" component={RecruiterSuggestions} allowedUserType="recruiter" />
       <ProtectedRoute path="/recruiter/opportunities" component={RecruiterOpportunities} allowedUserType="recruiter" />
+      <ProtectedRoute path="/recruiter/opportunities/new" component={RecruiterOpportunities} allowedUserType="recruiter" />
       <ProtectedRoute path="/recruiter/profile" component={RecruiterProfile} allowedUserType="recruiter" />
 
       {/* Fallback to 404 */}

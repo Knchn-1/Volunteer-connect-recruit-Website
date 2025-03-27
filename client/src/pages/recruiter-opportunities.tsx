@@ -71,13 +71,20 @@ type OpportunityFormValues = z.infer<typeof opportunitySchema>;
 
 export default function RecruiterOpportunities() {
   const [isCreating, setIsCreating] = useState(false);
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Open create dialog automatically if the path is /recruiter/opportunities/new
+  React.useEffect(() => {
+    if (location === '/recruiter/opportunities/new') {
+      setIsCreating(true);
+    }
+  }, [location]);
 
   // Query opportunities
   const { data: opportunities, isLoading: opportunitiesLoading } = useQuery<Opportunity[]>({
-    queryKey: [`/api/opportunities?ngoId=${user?.ngoId}`],
+    queryKey: ['/api/opportunities', user?.ngoId],
     enabled: !!user?.ngoId,
   });
 
@@ -114,7 +121,7 @@ export default function RecruiterOpportunities() {
       });
       setIsCreating(false);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: [`/api/opportunities?ngoId=${user?.ngoId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/opportunities', user?.ngoId] });
     },
     onError: (error: Error) => {
       toast({
@@ -136,11 +143,9 @@ export default function RecruiterOpportunities() {
       return;
     }
     
-    // Convert skill input to array if it's a string
+    // Get skills array from form data
     let skillsArray: string[] = [];
-    if (typeof data.skills === "string") {
-      skillsArray = data.skills.split(",").map(skill => skill.trim());
-    } else if (Array.isArray(data.skills)) {
+    if (Array.isArray(data.skills)) {
       skillsArray = data.skills;
     }
     
