@@ -81,6 +81,14 @@ export default function RecruiterOpportunities() {
       setIsCreating(true);
     }
   }, [location]);
+  
+  // Redirect to base path when dialog is closed
+  const handleOpenChange = (open: boolean) => {
+    if (!open && location === '/recruiter/opportunities/new') {
+      setLocation('/recruiter/opportunities');
+    }
+    setIsCreating(open);
+  };
 
   // Query opportunities
   const { data: opportunities, isLoading: opportunitiesLoading } = useQuery<Opportunity[]>({
@@ -119,7 +127,7 @@ export default function RecruiterOpportunities() {
         title: "Opportunity created",
         description: "Your volunteer opportunity has been created successfully.",
       });
-      setIsCreating(false);
+      handleOpenChange(false);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ['/api/opportunities', user?.ngoId] });
     },
@@ -301,7 +309,7 @@ export default function RecruiterOpportunities() {
       </main>
       
       {/* Create Opportunity Dialog */}
-      <Dialog open={isCreating} onOpenChange={setIsCreating}>
+      <Dialog open={isCreating} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Create Volunteer Opportunity</DialogTitle>
@@ -455,8 +463,11 @@ export default function RecruiterOpportunities() {
                         <Input 
                           type="number" 
                           min={1} 
-                          {...field}
+                          value={field.value?.toString() || "1"}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                          name={field.name}
                         />
                       </FormControl>
                       <FormMessage />
@@ -471,8 +482,8 @@ export default function RecruiterOpportunities() {
                     <FormItem className="flex flex-row items-end space-x-2 space-y-0 rounded-md border p-4">
                       <FormControl>
                         <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                          checked={!!field.value}
+                          onCheckedChange={(checked) => field.onChange(!!checked)}
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
@@ -530,7 +541,7 @@ export default function RecruiterOpportunities() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsCreating(false)}
+                  onClick={() => handleOpenChange(false)}
                 >
                   Cancel
                 </Button>
