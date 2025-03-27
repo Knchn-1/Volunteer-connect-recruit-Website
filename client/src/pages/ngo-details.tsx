@@ -38,7 +38,10 @@ import {
   SendHorizontal,
   Loader2,
   MessageSquare,
+  FileUp,
+  X,
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 
 export default function NgoDetails() {
@@ -49,6 +52,8 @@ export default function NgoDetails() {
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeError, setResumeError] = useState("");
 
   // Query NGO details
   const { data: ngo, isLoading: ngoLoading } = useQuery<NGO>({
@@ -63,11 +68,8 @@ export default function NgoDetails() {
 
   // Apply to opportunity mutation
   const applyMutation = useMutation({
-    mutationFn: async (opportunityId: number) => {
-      const res = await apiRequest("POST", "/api/applications", {
-        opportunityId,
-        message: applicationMessage,
-      });
+    mutationFn: async (data: { opportunityId: number; message: string; resume: string | null }) => {
+      const res = await apiRequest("POST", "/api/applications", data);
       return await res.json();
     },
     onSuccess: () => {
@@ -77,6 +79,8 @@ export default function NgoDetails() {
       });
       setIsApplicationModalOpen(false);
       setApplicationMessage("");
+      setResumeFile(null);
+      setResumeError("");
       queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
     },
     onError: (error: Error) => {
@@ -99,9 +103,55 @@ export default function NgoDetails() {
     setIsApplicationModalOpen(true);
   };
 
-  const handleSubmitApplication = () => {
+  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setResumeError("");
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setResumeError("File size should be less than 5MB");
+        return;
+      }
+      
+      // Check file type (PDF, DOC, DOCX)
+      const fileType = file.type;
+      if (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(fileType)) {
+        setResumeError("Only PDF, DOC, or DOCX files are accepted");
+        return;
+      }
+      
+      setResumeFile(file);
+    }
+  };
+  
+  const handleSubmitApplication = async () => {
     if (!selectedOpportunity) return;
-    applyMutation.mutate(selectedOpportunity.id);
+    
+    // If a resume file exists, convert it to a base64 string
+    let resumeData = null;
+    if (resumeFile) {
+      try {
+        resumeData = await convertFileToBase64(resumeFile);
+      } catch (error) {
+        setResumeError("Error processing resume file");
+        return;
+      }
+    }
+    
+    applyMutation.mutate({
+      opportunityId: selectedOpportunity.id,
+      message: applicationMessage,
+      resume: resumeData,
+    });
+  };
+  
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
   const isLoading = ngoLoading || opportunitiesLoading;
@@ -284,7 +334,17 @@ export default function NgoDetails() {
       </main>
 
       {/* Application Modal */}
-      <Dialog open={isApplicationModalOpen} onOpenChange={setIsApplicationModalOpen}>
+      <Dialog 
+        open={isApplicationModalOpen} 
+        onOpenChange={(open) => {
+          setIsApplicationModalOpen(open);
+          if (!open) {
+            setResumeFile(null);
+            setResumeError("");
+            setApplicationMessage("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Apply for Volunteer Position</DialogTitle>
@@ -298,15 +358,67 @@ export default function NgoDetails() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium mb-1 block">
+              <Label className="text-sm font-medium mb-1 block">
                 Message to the Organization (Optional)
-              </label>
+              </Label>
               <Textarea
                 placeholder="Tell them why you're interested in this opportunity and what skills you can bring..."
                 value={applicationMessage}
                 onChange={(e) => setApplicationMessage(e.target.value)}
                 className="min-h-[120px]"
               />
+            </div>
+            
+            <div className="mt-4">
+              <Label className="text-sm font-medium mb-1 block">
+                Resume / CV (Optional)
+              </Label>
+              
+              {resumeFile ? (
+                <div className="mt-2 p-3 border rounded-md flex items-center justify-between">
+                  <div className="flex items-center">
+                    <FileUp className="h-4 w-4 mr-2 text-primary" />
+                    <span className="text-sm truncate max-w-[200px]">{resumeFile.name}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setResumeFile(null)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Remove</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-2">
+                  <div className="flex items-center justify-center w-full">
+                    <Label
+                      htmlFor="resume-upload"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-md cursor-pointer hover:border-primary"
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <FileUp className="w-8 h-8 mb-2 text-neutral-500" />
+                        <p className="mb-1 text-sm text-neutral-500">
+                          <span className="font-semibold">Click to upload</span> or drag and drop
+                        </p>
+                        <p className="text-xs text-neutral-500">PDF, DOC, or DOCX (up to 5MB)</p>
+                      </div>
+                      <input 
+                        id="resume-upload" 
+                        type="file" 
+                        className="hidden" 
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        onChange={handleResumeChange}
+                      />
+                    </Label>
+                  </div>
+                </div>
+              )}
+              
+              {resumeError && (
+                <p className="text-sm text-red-500 mt-2">{resumeError}</p>
+              )}
             </div>
           </div>
           <DialogFooter>

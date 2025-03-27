@@ -178,6 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         opportunityId,
         ngoId: opportunity.ngoId,
         message: req.body.message || "",
+        resume: req.body.resume || null,
         status: "pending"
       });
       

@@ -25,7 +25,9 @@ import {
   Calendar, 
   Loader2,
   Clock,
-  User as UserIcon
+  User as UserIcon,
+  FileText,
+  Download
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -123,7 +125,8 @@ export default function RecruiterApplications() {
   }, [applications, activeTab]);
 
   // Format date
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | null) => {
+    if (!date) return "Unknown date";
     return format(new Date(date), "MMM d, yyyy");
   };
 
@@ -183,7 +186,7 @@ export default function RecruiterApplications() {
                             <div className="flex items-center gap-2">
                               {getStatusBadge(application.status)}
                               <span className="text-sm text-neutral-500">
-                                Applied on {formatDate(application.createdAt)}
+                                Applied on {application.createdAt ? formatDate(new Date(application.createdAt)) : "Unknown date"}
                               </span>
                             </div>
                             
@@ -200,6 +203,31 @@ export default function RecruiterApplications() {
                             {application.message && (
                               <div className="bg-neutral-50 p-4 rounded border border-neutral-200">
                                 <p className="text-neutral-600 italic">"{application.message}"</p>
+                              </div>
+                            )}
+                            
+                            {application.resume && (
+                              <div className="flex items-center mt-3">
+                                <FileText className="h-4 w-4 text-primary mr-2" />
+                                <span className="text-sm font-medium mr-2">Resume attached</span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 flex items-center gap-1 text-xs"
+                                  onClick={() => {
+                                    // Create and trigger download from base64 data
+                                    const link = document.createElement("a");
+                                    link.href = application.resume as string;
+                                    const volunteerName = getVolunteerName(application.volunteerId).replace(/\s+/g, '_');
+                                    link.download = `${volunteerName}_resume.pdf`;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                  }}
+                                >
+                                  <Download className="h-3 w-3" />
+                                  Download
+                                </Button>
                               </div>
                             )}
                           </div>

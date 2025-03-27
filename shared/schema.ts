@@ -54,6 +54,7 @@ export const applications = pgTable("applications", {
   ngoId: integer("ngo_id").notNull(),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   message: text("message"),
+  resume: text("resume"), // URL or base64 encoded string of the resume file
   createdAt: timestamp("created_at").defaultNow(),
 });
 
