@@ -52,12 +52,12 @@ export default function NgoDetails() {
 
   // Query NGO details
   const { data: ngo, isLoading: ngoLoading } = useQuery<NGO>({
-    queryKey: [`/api/ngos/${id}`],
+    queryKey: ['/api/ngos', id],
   });
 
   // Query opportunities for this NGO
   const { data: opportunities, isLoading: opportunitiesLoading } = useQuery<Opportunity[]>({
-    queryKey: [`/api/opportunities?ngoId=${id}`],
+    queryKey: ['/api/opportunities', { ngoId: id }],
     enabled: !!id,
   });
 
