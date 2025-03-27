@@ -34,18 +34,28 @@ export default function RecruiterDashboard() {
 
   // Query opportunities
   const { data: opportunities, isLoading: opportunitiesLoading } = useQuery<Opportunity[]>({
-    queryKey: [`/api/opportunities?ngoId=${user?.ngoId}`],
+    queryKey: ['/api/opportunities', user?.ngoId],
     enabled: !!user?.ngoId,
   });
 
   // Query NGO details
   const { data: ngo, isLoading: ngoLoading } = useQuery<NGO>({
-    queryKey: [`/api/ngos/${user?.ngoId}`],
+    queryKey: ['/api/ngos', user?.ngoId],
     enabled: !!user?.ngoId,
   });
 
   const pendingApplications = applications?.filter(a => a.status === "pending") || [];
   const recentSuggestions = suggestions?.slice(0, 3) || [];
+
+  // Format date safely
+  const formatDate = (dateInput: any): string => {
+    if (!dateInput) return 'Unknown date';
+    try {
+      return new Date(dateInput).toLocaleDateString();
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
 
   const isLoading = applicationsLoading || suggestionsLoading || opportunitiesLoading || ngoLoading;
 
@@ -83,7 +93,7 @@ export default function RecruiterDashboard() {
                       </p>
                       <Button 
                         onClick={() => setLocation("/recruiter/profile")}
-                        className="bg-secondary hover:bg-secondary-dark"
+                        className="bg-secondary hover:bg-green-700"
                       >
                         Create NGO Profile
                       </Button>
@@ -175,7 +185,7 @@ export default function RecruiterDashboard() {
                             <div className="flex items-center">
                               <Clock className="h-4 w-4 text-neutral-400 mr-2" />
                               <span className="text-sm text-neutral-500">
-                                Applied on {new Date(application.createdAt).toLocaleDateString()}
+                                Applied on {formatDate(application.createdAt)}
                               </span>
                             </div>
                             <Badge>Pending</Badge>
@@ -227,7 +237,7 @@ export default function RecruiterDashboard() {
                           <p className="text-neutral-600 mb-4">"{suggestion.content}"</p>
                           <div className="flex justify-between items-center text-sm text-neutral-500">
                             <span>Volunteer ID: {suggestion.volunteerId}</span>
-                            <span>{new Date(suggestion.createdAt).toLocaleDateString()}</span>
+                            <span>{formatDate(suggestion.createdAt)}</span>
                           </div>
                         </CardContent>
                       </Card>

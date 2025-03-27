@@ -57,7 +57,7 @@ export default function RecruiterProfile() {
 
   // Get NGO details if the user has an associated NGO
   const { data: ngo, isLoading: ngoLoading } = useQuery<NGO>({
-    queryKey: [`/api/ngos/${user?.ngoId}`],
+    queryKey: ['/api/ngos', user?.ngoId],
     enabled: !!user?.ngoId,
   });
 
@@ -155,7 +155,7 @@ export default function RecruiterProfile() {
       return await res.json();
     },
     onSuccess: (data) => {
-      queryClient.setQueryData([`/api/ngos/${data.id}`], data);
+      queryClient.setQueryData(['/api/ngos', data.id], data);
       
       // If this was a new NGO, also update the user profile
       if (!user?.ngoId) {

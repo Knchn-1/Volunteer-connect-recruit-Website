@@ -22,6 +22,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ngos/:id", async (req, res) => {
     try {
       const ngoId = parseInt(req.params.id);
+      
+      if (isNaN(ngoId)) {
+        return res.status(400).json({ message: "Invalid NGO ID" });
+      }
+      
       const ngo = await storage.getNgo(ngoId);
       
       if (!ngo) {
@@ -79,6 +84,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/opportunities/:id", async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
+      
+      if (isNaN(opportunityId)) {
+        return res.status(400).json({ message: "Invalid opportunity ID" });
+      }
+      
       const opportunity = await storage.getOpportunity(opportunityId);
       
       if (!opportunity) {
@@ -188,6 +198,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const applicationId = parseInt(req.params.id);
+      
+      if (isNaN(applicationId)) {
+        return res.status(400).json({ message: "Invalid application ID" });
+      }
+      
       const application = await storage.getApplication(applicationId);
       
       if (!application) {
