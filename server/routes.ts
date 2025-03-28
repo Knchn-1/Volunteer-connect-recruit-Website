@@ -98,6 +98,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Opportunity not found" });
       }
       
+      // Check if the opportunity is deleted
+      if (opportunity.deleted) {
+        return res.status(404).json({ message: "Opportunity not found or has been deleted" });
+      }
+      
       res.json(opportunity);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch opportunity" });
@@ -213,6 +218,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!opportunity) {
         return res.status(404).json({ message: "Opportunity not found" });
+      }
+      
+      // Check if the opportunity is deleted
+      if (opportunity.deleted) {
+        return res.status(404).json({ message: "Opportunity not found or has been deleted" });
       }
       
       // Check if the volunteer has already applied for this opportunity

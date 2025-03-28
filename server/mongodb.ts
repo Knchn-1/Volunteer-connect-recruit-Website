@@ -198,11 +198,15 @@ export class MongoDBStorage implements IStorage {
 
   async getOpportunities(): Promise<Opportunity[]> {
     if (!this.opportunitiesCollection) throw new Error('Database not connected');
+    // Get all opportunities, including deleted ones
+    // We'll let the routes layer filter out deleted opportunities
     return this.opportunitiesCollection.find().toArray() as unknown as Opportunity[];
   }
 
   async getOpportunitiesByNgo(ngoId: number): Promise<Opportunity[]> {
     if (!this.opportunitiesCollection) throw new Error('Database not connected');
+    // Get all opportunities for this NGO, including deleted ones
+    // We'll let the routes layer filter out deleted opportunities
     return this.opportunitiesCollection.find({ ngoId }).toArray() as unknown as Opportunity[];
   }
 
@@ -213,7 +217,8 @@ export class MongoDBStorage implements IStorage {
     const ngosWithCause = await this.getNgosByCause(cause);
     const ngoIds = ngosWithCause.map(ngo => ngo.id);
     
-    // Find opportunities for those NGOs
+    // Find opportunities for those NGOs, including deleted ones
+    // We'll let the routes layer filter out deleted opportunities
     return this.opportunitiesCollection.find({ ngoId: { $in: ngoIds } }).toArray() as unknown as Opportunity[];
   }
 

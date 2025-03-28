@@ -61,10 +61,13 @@ export default function NgoDetails() {
   });
 
   // Query opportunities for this NGO
-  const { data: opportunities, isLoading: opportunitiesLoading } = useQuery<Opportunity[]>({
+  const { data: allOpportunities, isLoading: opportunitiesLoading } = useQuery<Opportunity[]>({
     queryKey: ['/api/opportunities', { ngoId: id }],
     enabled: !!id,
   });
+  
+  // Filter out deleted opportunities
+  const opportunities = allOpportunities?.filter(opp => !opp.deleted) || [];
 
   // Apply to opportunity mutation
   const applyMutation = useMutation({
