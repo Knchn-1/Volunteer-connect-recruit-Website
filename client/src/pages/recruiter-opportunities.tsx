@@ -62,6 +62,10 @@ const opportunitySchema = insertOpportunitySchema
     ngoId: true
   })
   .extend({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().min(1, "Description is required"),
+    location: z.string().min(1, "Location is required"),
+    commitment: z.string().min(1, "Commitment is required"),
     startDate: z.date().nullable().optional(),
     endDate: z.date().nullable().optional(),
     skills: z.array(z.string()).default([]),
@@ -110,6 +114,37 @@ export default function RecruiterOpportunities() {
     },
   });
 
+  // Delete opportunity confirmation state
+  const [opportunityToDelete, setOpportunityToDelete] = useState<number | null>(null);
+  
+  // Delete opportunity mutation
+  const deleteOpportunityMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/opportunities/${id}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Opportunity deleted",
+        description: "The volunteer opportunity has been removed.",
+      });
+      setOpportunityToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/opportunities', user?.ngoId] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Deletion failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Handle delete opportunity
+  const deleteOpportunity = (id: number) => {
+    setOpportunityToDelete(id);
+  };
+  
   // Create opportunity mutation
   const createOpportunityMutation = useMutation({
     mutationFn: async (data: OpportunityFormValues) => {
@@ -304,11 +339,25 @@ export default function RecruiterOpportunities() {
                     )}
                   </CardContent>
                   <CardFooter className="border-t pt-4 flex justify-between">
-                    <Button variant="outline" className="text-neutral-600">
+                    <Button 
+                      variant="outline" 
+                      className="text-neutral-600"
+                      onClick={() => {
+                        // TODO: Implement edit functionality
+                        toast({
+                          title: "Coming Soon",
+                          description: "Edit functionality is coming soon.",
+                        });
+                      }}
+                    >
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit
                     </Button>
-                    <Button variant="outline" className="text-red-600">
+                    <Button 
+                      variant="outline" 
+                      className="text-red-600"
+                      onClick={() => deleteOpportunity(opportunity.id)}
+                    >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Remove
                     </Button>
@@ -319,6 +368,45 @@ export default function RecruiterOpportunities() {
           )}
         </div>
       </main>
+      
+      {/* Delete Opportunity Confirmation Dialog */}
+      <Dialog
+        open={opportunityToDelete !== null}
+        onOpenChange={(open) => !open && setOpportunityToDelete(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this volunteer opportunity? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setOpportunityToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (opportunityToDelete !== null) {
+                  deleteOpportunityMutation.mutate(opportunityToDelete);
+                }
+              }}
+              disabled={deleteOpportunityMutation.isPending}
+            >
+              {deleteOpportunityMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* Create Opportunity Dialog */}
       <Dialog open={isCreating} onOpenChange={handleOpenChange}>

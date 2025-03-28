@@ -43,6 +43,7 @@ export const opportunities = pgTable("opportunities", {
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   openings: integer("openings").default(1),
+  deleted: boolean("deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

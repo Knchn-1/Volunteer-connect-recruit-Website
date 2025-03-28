@@ -75,6 +75,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         opportunities = await storage.getOpportunities();
       }
       
+      // Filter out deleted opportunities
+      opportunities = opportunities.filter(opp => !opp.deleted);
+      
       res.json(opportunities);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch opportunities" });
@@ -123,6 +126,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create opportunity" });
+    }
+  });
+  
+  // Delete an opportunity
+  app.delete("/api/opportunities/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || req.user.userType !== "recruiter") {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      const opportunityId = parseInt(req.params.id);
+      
+      if (isNaN(opportunityId)) {
+        return res.status(400).json({ message: "Invalid opportunity ID" });
+      }
+      
+      const opportunity = await storage.getOpportunity(opportunityId);
+      
+      if (!opportunity) {
+        return res.status(404).json({ message: "Opportunity not found" });
+      }
+      
+      // Check if the recruiter is associated with the NGO that owns this opportunity
+      if (!req.user.ngoId || opportunity.ngoId !== req.user.ngoId) {
+        return res.status(403).json({ message: "Not authorized to delete this opportunity" });
+      }
+      
+      // In our current MemStorage there's no delete method, so we'll update the opportunity to mark it as deleted
+      await storage.updateOpportunity(opportunityId, { deleted: true });
+      
+      res.json({ message: "Opportunity deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete opportunity" });
     }
   });
 
@@ -297,9 +333,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Debug endpoint to check all users - for development only
   app.get("/api/debug/users", async (req, res) => {
     try {
-      const users = Array.from(storage.usersMap.values()).map(user => {
-        // Return user info but mask the password
-        const { password, ...userInfo } = user;
+      // Get users from storage instead of accessing the map directly
+      const volunteers = await storage.getVolunteers();
+      const recruiters = await storage.getRecruiters();
+      const users = [...volunteers, ...recruiters].map(user => {
+        // Return a sanitized version without password
+        const { password, ...userInfo } = user as any;
         return { ...userInfo, hasPassword: !!password };
       });
       res.json(users);
