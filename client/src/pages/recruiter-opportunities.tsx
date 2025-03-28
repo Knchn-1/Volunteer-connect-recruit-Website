@@ -124,6 +124,9 @@ export default function RecruiterOpportunities() {
         endDate: data.endDate ? data.endDate.toISOString() : null
       };
       
+      // Log what we're sending to the API
+      console.log("Data being sent to API:", formattedData);
+
       const res = await apiRequest("POST", "/api/opportunities", formattedData);
       return await res.json();
     },
@@ -137,6 +140,9 @@ export default function RecruiterOpportunities() {
       queryClient.invalidateQueries({ queryKey: ['/api/opportunities', user?.ngoId] });
     },
     onError: (error: Error) => {
+      // Log detailed error
+      console.error("Opportunity creation error:", error);
+      
       toast({
         title: "Creation failed",
         description: error.message,
@@ -412,8 +418,8 @@ export default function RecruiterOpportunities() {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
+                            selected={field.value ? field.value : undefined}
+                            onSelect={(date) => field.onChange(date)}
                             initialFocus
                           />
                         </PopoverContent>
@@ -446,8 +452,8 @@ export default function RecruiterOpportunities() {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
+                            selected={field.value ? field.value : undefined}
+                            onSelect={(date) => field.onChange(date)}
                             initialFocus
                           />
                         </PopoverContent>
