@@ -62,8 +62,8 @@ const opportunitySchema = insertOpportunitySchema
     ngoId: true
   })
   .extend({
-    startDate: z.date().optional(),
-    endDate: z.date().optional(),
+    startDate: z.date().nullable().optional(),
+    endDate: z.date().nullable().optional(),
     skills: z.array(z.string()).default([]),
   });
 
@@ -316,7 +316,7 @@ export default function RecruiterOpportunities() {
       
       {/* Create Opportunity Dialog */}
       <Dialog open={isCreating} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Volunteer Opportunity</DialogTitle>
             <DialogDescription>
