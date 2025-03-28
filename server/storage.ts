@@ -1,11 +1,15 @@
 import { users, type User, type InsertUser, ngos, type NGO, type InsertNGO, opportunities, type Opportunity, type InsertOpportunity, applications, type Application, type InsertApplication, suggestions, type Suggestion, type InsertSuggestion } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
+import { MongoDBStorage } from "./mongodb";
 
 const MemoryStore = createMemoryStore(session);
 
 // Storage interface
 export interface IStorage {
+  // Connection (only needed for MongoDB)
+  connect?(): Promise<void>;
+  
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -44,6 +48,9 @@ export interface IStorage {
   getSuggestionsByVolunteer(volunteerId: number): Promise<Suggestion[]>;
   createSuggestion(suggestion: InsertSuggestion): Promise<Suggestion>;
   
+  // Data seeding
+  seedInitialData?(): Promise<void>;
+  
   // Session store
   sessionStore: session.Store;
 }
@@ -64,6 +71,18 @@ export class MemStorage implements IStorage {
   suggestionCurrentId: number;
   
   sessionStore: session.Store;
+  
+  // Dummy connect method for interface compatibility
+  async connect(): Promise<void> {
+    // Nothing to do for in-memory storage
+    return;
+  }
+  
+  // Dummy seedInitialData method for interface compatibility
+  async seedInitialData(): Promise<void> {
+    // Already seeded in constructor
+    return;
+  }
   
   constructor() {
     this.usersMap = new Map();
@@ -105,7 +124,20 @@ export class MemStorage implements IStorage {
   
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
+    // Set nullable fields explicitly 
+    const user: User = {
+      id,
+      username: insertUser.username,
+      password: insertUser.password,
+      email: insertUser.email,
+      fullName: insertUser.fullName,
+      userType: insertUser.userType,
+      phoneNumber: insertUser.phoneNumber ?? null,
+      location: insertUser.location ?? null,
+      bio: insertUser.bio ?? null,
+      interests: insertUser.interests ?? null,
+      ngoId: insertUser.ngoId ?? null
+    };
     this.usersMap.set(id, user);
     return user;
   }
@@ -148,7 +180,18 @@ export class MemStorage implements IStorage {
   
   async createNgo(insertNgo: InsertNGO): Promise<NGO> {
     const id = this.ngoCurrentId++;
-    const ngo: NGO = { ...insertNgo, id };
+    // Set nullable fields explicitly
+    const ngo: NGO = {
+      id,
+      name: insertNgo.name,
+      email: insertNgo.email,
+      description: insertNgo.description,
+      cause: insertNgo.cause,
+      location: insertNgo.location,
+      phoneNumber: insertNgo.phoneNumber ?? null,
+      website: insertNgo.website ?? null,
+      logo: insertNgo.logo ?? null
+    };
     this.ngosMap.set(id, ngo);
     return ngo;
   }
@@ -188,10 +231,20 @@ export class MemStorage implements IStorage {
   
   async createOpportunity(insertOpportunity: InsertOpportunity): Promise<Opportunity> {
     const id = this.opportunityCurrentId++;
+    // Set nullable fields explicitly
     const opportunity: Opportunity = { 
-      ...insertOpportunity, 
-      id, 
-      createdAt: new Date() 
+      id,
+      title: insertOpportunity.title,
+      description: insertOpportunity.description,
+      location: insertOpportunity.location,
+      ngoId: insertOpportunity.ngoId,
+      commitment: insertOpportunity.commitment,
+      remote: insertOpportunity.remote ?? null,
+      skills: insertOpportunity.skills ?? null,
+      startDate: insertOpportunity.startDate ?? null,
+      endDate: insertOpportunity.endDate ?? null,
+      openings: insertOpportunity.openings ?? null,
+      createdAt: new Date()
     };
     this.opportunitiesMap.set(id, opportunity);
     return opportunity;
@@ -231,9 +284,15 @@ export class MemStorage implements IStorage {
   
   async createApplication(insertApplication: InsertApplication): Promise<Application> {
     const id = this.applicationCurrentId++;
+    // Set nullable fields explicitly
     const application: Application = { 
-      ...insertApplication, 
       id, 
+      volunteerId: insertApplication.volunteerId,
+      opportunityId: insertApplication.opportunityId,
+      ngoId: insertApplication.ngoId,
+      status: insertApplication.status || 'pending',
+      message: insertApplication.message ?? null,
+      resume: insertApplication.resume ?? null,
       createdAt: new Date() 
     };
     this.applicationsMap.set(id, application);
@@ -268,9 +327,12 @@ export class MemStorage implements IStorage {
   
   async createSuggestion(insertSuggestion: InsertSuggestion): Promise<Suggestion> {
     const id = this.suggestionCurrentId++;
+    // Set nullable fields explicitly
     const suggestion: Suggestion = { 
-      ...insertSuggestion, 
       id, 
+      ngoId: insertSuggestion.ngoId,
+      volunteerId: insertSuggestion.volunteerId,
+      content: insertSuggestion.content,
       createdAt: new Date() 
     };
     this.suggestionsMap.set(id, suggestion);
@@ -355,5 +417,22 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Export a singleton instance
-export const storage = new MemStorage();
+// Check if MONGODB_URI environment variable is set
+const useMongoDb = !!process.env.MONGODB_URI;
+
+// Export the appropriate storage implementation
+export const storage: IStorage = useMongoDb
+  ? new MongoDBStorage(process.env.MONGODB_URI as string)
+  : new MemStorage();
+
+// If using MongoDB, connect and then seed initial data if needed
+if (useMongoDb) {
+  const mongoStorage = storage as MongoDBStorage;
+  
+  // First connect, then seed
+  mongoStorage.connect()
+    .then(() => mongoStorage.seedInitialData())
+    .catch(err => {
+      console.error('Error with MongoDB initialization:', err);
+    });
+}
