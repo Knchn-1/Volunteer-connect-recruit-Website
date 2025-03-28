@@ -18,18 +18,42 @@ export function Footer() {
           <div>
             <h4 className="font-bold mb-4">For Volunteers</h4>
             <ul className="space-y-2">
-              <li><Link href="/volunteer/search"><a className="text-neutral-300 hover:text-white transition duration-200">Find Opportunities</a></Link></li>
-              <li><Link href="/auth"><a className="text-neutral-300 hover:text-white transition duration-200">Create Profile</a></Link></li>
-              <li><Link href="/volunteer/applications"><a className="text-neutral-300 hover:text-white transition duration-200">Track Applications</a></Link></li>
+              <li>
+                <Link href="/volunteer/home" className="text-neutral-300 hover:text-white transition duration-200">
+                  Find Opportunities
+                </Link>
+              </li>
+              <li>
+                <Link href="/auth" className="text-neutral-300 hover:text-white transition duration-200">
+                  Create Profile
+                </Link>
+              </li>
+              <li>
+                <Link href="/volunteer/applications" className="text-neutral-300 hover:text-white transition duration-200">
+                  Track Applications
+                </Link>
+              </li>
               <li><a href="#" className="text-neutral-300 hover:text-white transition duration-200">Resources</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-4">For Recruiters</h4>
             <ul className="space-y-2">
-              <li><Link href="/recruiter/opportunities"><a className="text-neutral-300 hover:text-white transition duration-200">Post Opportunities</a></Link></li>
-              <li><Link href="/auth"><a className="text-neutral-300 hover:text-white transition duration-200">NGO Registration</a></Link></li>
-              <li><Link href="/recruiter/applications"><a className="text-neutral-300 hover:text-white transition duration-200">Manage Applications</a></Link></li>
+              <li>
+                <Link href="/recruiter/opportunities" className="text-neutral-300 hover:text-white transition duration-200">
+                  Post Opportunities
+                </Link>
+              </li>
+              <li>
+                <Link href="/auth" className="text-neutral-300 hover:text-white transition duration-200">
+                  NGO Registration
+                </Link>
+              </li>
+              <li>
+                <Link href="/recruiter/applications" className="text-neutral-300 hover:text-white transition duration-200">
+                  Manage Applications
+                </Link>
+              </li>
               <li><a href="#" className="text-neutral-300 hover:text-white transition duration-200">Success Stories</a></li>
             </ul>
           </div>
