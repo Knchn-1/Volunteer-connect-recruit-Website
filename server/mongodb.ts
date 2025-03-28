@@ -224,6 +224,29 @@ export class MongoDBStorage implements IStorage {
     const latestOpportunity = await this.opportunitiesCollection.findOne({}, { sort: { id: -1 } }) as unknown as Opportunity;
     const id = latestOpportunity ? latestOpportunity.id + 1 : 1;
     
+    // Convert date strings to Date objects if needed
+    let startDate = null;
+    if (opportunity.startDate) {
+      startDate = opportunity.startDate instanceof Date 
+        ? opportunity.startDate 
+        : new Date(opportunity.startDate as any);
+    }
+    
+    let endDate = null;
+    if (opportunity.endDate) {
+      endDate = opportunity.endDate instanceof Date 
+        ? opportunity.endDate 
+        : new Date(opportunity.endDate as any);
+    }
+    
+    // Log the date conversions
+    console.log("Date conversion:", {
+      originalStartDate: opportunity.startDate,
+      convertedStartDate: startDate,
+      originalEndDate: opportunity.endDate,
+      convertedEndDate: endDate
+    });
+    
     // Set default values for nullable fields
     const newOpportunity: Opportunity = {
       id,
@@ -232,11 +255,12 @@ export class MongoDBStorage implements IStorage {
       location: opportunity.location,
       ngoId: opportunity.ngoId,
       commitment: opportunity.commitment,
-      remote: opportunity.remote ?? null,
-      skills: opportunity.skills ?? null,
-      startDate: opportunity.startDate ?? null,
-      endDate: opportunity.endDate ?? null,
-      openings: opportunity.openings ?? null,
+      remote: opportunity.remote ?? false,
+      skills: opportunity.skills ?? [],
+      startDate,
+      endDate,
+      openings: opportunity.openings ?? 1,
+      deleted: false,
       createdAt: new Date()
     };
     
@@ -247,9 +271,22 @@ export class MongoDBStorage implements IStorage {
   async updateOpportunity(id: number, opportunityData: Partial<Opportunity>): Promise<Opportunity | undefined> {
     if (!this.opportunitiesCollection) throw new Error('Database not connected');
     
+    // Process dates if they are provided as strings
+    const updateData = { ...opportunityData };
+    
+    if (updateData.startDate && typeof updateData.startDate === 'string') {
+      updateData.startDate = new Date(updateData.startDate);
+    }
+    
+    if (updateData.endDate && typeof updateData.endDate === 'string') {
+      updateData.endDate = new Date(updateData.endDate);
+    }
+    
+    console.log(`Updating opportunity ${id} with:`, updateData);
+    
     const result = await this.opportunitiesCollection.findOneAndUpdate(
       { id }, 
-      { $set: opportunityData },
+      { $set: updateData },
       { returnDocument: 'after' }
     ) as unknown as Opportunity;
     

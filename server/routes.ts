@@ -114,14 +114,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Recruiter must be associated with an NGO" });
       }
       
-      const parsedData = insertOpportunitySchema.parse({
-        ...req.body,
-        ngoId: req.user.ngoId
-      });
+      // Process date strings to Date objects before validation
+      const requestData = { ...req.body, ngoId: req.user.ngoId };
+      
+      // Convert date strings to Date objects if they are provided
+      if (requestData.startDate && typeof requestData.startDate === 'string') {
+        requestData.startDate = new Date(requestData.startDate);
+      }
+      
+      if (requestData.endDate && typeof requestData.endDate === 'string') {
+        requestData.endDate = new Date(requestData.endDate);
+      }
+      
+      // Now parse with schema
+      const parsedData = insertOpportunitySchema.parse(requestData);
+      
+      // Log parsed data for debugging
+      console.log("Parsed opportunity data:", parsedData);
       
       const opportunity = await storage.createOpportunity(parsedData);
       res.status(201).json(opportunity);
     } catch (error) {
+      console.error("Error creating opportunity:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
