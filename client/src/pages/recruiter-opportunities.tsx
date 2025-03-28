@@ -116,10 +116,15 @@ export default function RecruiterOpportunities() {
       // Add skills as array
       const skillsArray = data.skills || [];
       
-      const res = await apiRequest("POST", "/api/opportunities", {
+      // Format dates properly for the API
+      const formattedData = {
         ...data,
         skills: skillsArray,
-      });
+        startDate: data.startDate ? data.startDate.toISOString() : null,
+        endDate: data.endDate ? data.endDate.toISOString() : null
+      };
+      
+      const res = await apiRequest("POST", "/api/opportunities", formattedData);
       return await res.json();
     },
     onSuccess: () => {
@@ -160,6 +165,7 @@ export default function RecruiterOpportunities() {
     createOpportunityMutation.mutate({
       ...data,
       skills: skillsArray,
+      // The formatting of dates is now handled in the mutation function
     });
   };
 
