@@ -176,7 +176,7 @@ export default function VolunteerHome() {
                     </CardContent>
                     <CardFooter className="border-t pt-4">
                       <Button asChild className="w-full">
-                        <Link to={`/ngo-details/${opportunity.ngoId}?opportunityId=${opportunity.id}`}>
+                        <Link to={`/volunteer/ngo/${opportunity.ngoId}?opportunityId=${opportunity.id}`}>
                           View Details
                         </Link>
                       </Button>

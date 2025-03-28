@@ -27,10 +27,12 @@ function Router() {
       
       {/* Volunteer routes */}
       <ProtectedRoute path="/volunteer" component={VolunteerHome} allowedUserType="volunteer" />
+      <ProtectedRoute path="/volunteer/home" component={VolunteerHome} allowedUserType="volunteer" />
       <ProtectedRoute path="/volunteer/search" component={SearchNGOs} allowedUserType="volunteer" />
       <ProtectedRoute path="/volunteer/applications" component={VolunteerApplications} allowedUserType="volunteer" />
       <ProtectedRoute path="/volunteer/profile" component={VolunteerProfile} allowedUserType="volunteer" />
       <ProtectedRoute path="/volunteer/ngo/:id" component={NgoDetails} allowedUserType="volunteer" />
+      <ProtectedRoute path="/ngo-details/:id" component={NgoDetails} allowedUserType="volunteer" />
       
       {/* Recruiter routes */}
       <ProtectedRoute path="/recruiter" component={RecruiterDashboard} allowedUserType="recruiter" />

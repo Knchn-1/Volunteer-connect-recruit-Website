@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { VolunteerNavbar } from "@/components/volunteer-navbar";
@@ -46,7 +46,7 @@ import { format } from "date-fns";
 
 export default function NgoDetails() {
   const { id } = useParams<{ id: string }>();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [applicationMessage, setApplicationMessage] = useState("");
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
@@ -54,6 +54,10 @@ export default function NgoDetails() {
   const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeError, setResumeError] = useState("");
+  
+  // Extract opportunityId from query parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const opportunityIdParam = urlParams.get('opportunityId');
 
   // Query NGO details
   const { data: ngo, isLoading: ngoLoading } = useQuery<NGO>({
@@ -156,6 +160,30 @@ export default function NgoDetails() {
       reader.onerror = error => reject(error);
     });
   };
+
+  // Effect to handle highlighting specific opportunity
+  useEffect(() => {
+    if (opportunityIdParam && opportunities && opportunities.length > 0) {
+      const opportunity = opportunities.find(opp => opp.id === parseInt(opportunityIdParam));
+      if (opportunity) {
+        // Set the selected opportunity
+        setSelectedOpportunity(opportunity);
+        
+        // Scroll to the opportunity element after a slight delay to ensure rendering
+        setTimeout(() => {
+          const element = document.getElementById(`opportunity-${opportunityIdParam}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add highlight effect
+            element.classList.add('ring-2', 'ring-primary', 'ring-opacity-70');
+            setTimeout(() => {
+              element.classList.remove('ring-2', 'ring-primary', 'ring-opacity-70');
+            }, 3000); // Remove highlight after 3 seconds
+          }
+        }, 100);
+      }
+    }
+  }, [opportunityIdParam, opportunities]);
 
   const isLoading = ngoLoading || opportunitiesLoading;
 
@@ -273,7 +301,10 @@ export default function NgoDetails() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {opportunities.map((opportunity) => (
-                    <Card key={opportunity.id} className="h-full flex flex-col">
+                    <Card 
+                      key={opportunity.id} 
+                      id={`opportunity-${opportunity.id}`}
+                      className="h-full flex flex-col transition-all duration-300">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-xl">{opportunity.title}</CardTitle>
                         {opportunity.remote && (
