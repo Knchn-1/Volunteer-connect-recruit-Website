@@ -293,6 +293,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch profile" });
     }
   });
+  
+  // Debug endpoint to check all users - for development only
+  app.get("/api/debug/users", async (req, res) => {
+    try {
+      const users = Array.from(storage.usersMap.values()).map(user => {
+        // Return user info but mask the password
+        const { password, ...userInfo } = user;
+        return { ...userInfo, hasPassword: !!password };
+      });
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users data" });
+    }
+  });
 
   app.patch("/api/profile", async (req, res) => {
     try {

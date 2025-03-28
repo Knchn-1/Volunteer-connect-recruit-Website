@@ -50,7 +50,8 @@ export interface IStorage {
 
 // In-memory storage implementation
 export class MemStorage implements IStorage {
-  private usersMap: Map<number, User>;
+  // Make usersMap public for debug purposes
+  usersMap: Map<number, User>;
   private ngosMap: Map<number, NGO>;
   private opportunitiesMap: Map<number, Opportunity>;
   private applicationsMap: Map<number, Application>;
