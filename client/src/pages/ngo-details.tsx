@@ -62,12 +62,38 @@ export default function NgoDetails() {
   // Query NGO details
   const { data: ngo, isLoading: ngoLoading } = useQuery<NGO>({
     queryKey: ['/api/ngos', id],
+    queryFn: async () => {
+      console.log(`Fetching NGO with ID: ${id}`);
+      const res = await fetch(`/api/ngos/${id}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch NGO: ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('Fetched NGO data:', data);
+      
+      // If we get a 200 status but null/undefined data, return undefined so we show the NGO not found UI
+      if (!data) return undefined;
+      
+      // Ensure we're working with a single NGO object, not an array
+      const ngoData = Array.isArray(data) ? data.find(n => n.id === Number(id)) : data;
+      return ngoData;
+    }
   });
 
   // Query opportunities for this NGO
   const { data: allOpportunities, isLoading: opportunitiesLoading } = useQuery<Opportunity[]>({
     queryKey: ['/api/opportunities', { ngoId: id }],
     enabled: !!id,
+    queryFn: async () => {
+      console.log(`Fetching opportunities for NGO with ID: ${id}`);
+      const res = await fetch(`/api/opportunities?ngoId=${id}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch opportunities: ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('Fetched opportunities data:', data);
+      return Array.isArray(data) ? data : [];
+    }
   });
   
   // Filter out deleted opportunities
@@ -160,6 +186,12 @@ export default function NgoDetails() {
       reader.onerror = error => reject(error);
     });
   };
+
+  // Log for debugging
+  useEffect(() => {
+    console.log("NGO data:", ngo);
+    console.log("Opportunities data:", opportunities);
+  }, [ngo, opportunities]);
 
   // Effect to handle highlighting specific opportunity
   useEffect(() => {
